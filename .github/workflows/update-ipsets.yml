@@ -81,7 +81,7 @@ jobs:
               return sorted(str(net) for net in collapsed)
 
           data = {
-              "generated": datetime.utcnow().isoformat() + "Z",
+              "generated": datetime.now(datetime.UTC).isoformat(),
               "allowlists": {
                   "static": [],
                   "dynamic": {}
