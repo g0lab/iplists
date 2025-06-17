@@ -1,13 +1,14 @@
 name: Update Dynamic IP Sets
 
 on:
-  #schedule:
-  #  - cron: '0 1 * * *'  # Daily at 1 AM UTC
+  schedule:
+    #- cron: '0 1 * * *'  # Daily at 1 AM UTC
+    - cron: '0 * * * *'  # Every hour at minute 0 (e.g., 01:00, 02:00, etc.)
   workflow_dispatch:
 
 permissions:
   contents: write
-  
+
 jobs:
   update-ipsets:
     runs-on: ubuntu-latest
@@ -55,12 +56,13 @@ jobs:
           python3 <<EOF
           import os
           import json
+          import hashlib
           from datetime import datetime
 
           def read_file_lines(path):
               return sorted(set(
                   line.strip() for line in open(path, 'r', encoding='utf-8')
-                  if line.strip()
+                  if line.strip() and not line.strip().startswith('#')
               ))
 
           data = {
@@ -83,8 +85,15 @@ jobs:
               path = f"ipsets/blocklists/dynamic/{file}"
               data["blocklists"]["dynamic"][file] = read_file_lines(path)
 
-          with open("combined/ipsets.json", "w", encoding="utf-8") as f:
+          json_path = "combined/ipsets.json"
+          with open(json_path, "w", encoding="utf-8") as f:
               json.dump(data, f, indent=2)
+
+          # Calculate SHA1 and save to .sha1
+          with open(json_path, "rb") as f:
+              sha1 = hashlib.sha1(f.read()).hexdigest()
+          with open(json_path + ".sha1", "w", encoding="utf-8") as f:
+              f.write(sha1 + "\n")
           EOF
 
       - name: Commit and push changes
