@@ -68,14 +68,16 @@ jobs:
 
           def merge_ip_ranges(ip_list):
               nets = []
+              invalid = []
               for ip in ip_list:
                   try:
-                      # Try parsing as a network or host
                       net = ipaddress.ip_network(ip, strict=False)
                       nets.append(net)
                   except ValueError:
-                      continue  # Skip invalid IPs
+                      invalid.append(ip)
               collapsed = ipaddress.collapse_addresses(nets)
+              if invalid:
+                  print(f"[warn] Skipped invalid entries: {invalid}")
               return sorted(str(net) for net in collapsed)
 
           data = {
