@@ -58,7 +58,7 @@ jobs:
           import json
           import hashlib
           import ipaddress
-          from datetime import datetime
+          from datetime import datetime, UTC
 
           def read_file_lines(path):
               return sorted(set(
