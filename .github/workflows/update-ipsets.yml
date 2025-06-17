@@ -5,6 +5,9 @@ on:
   #  - cron: '0 1 * * *'  # Daily at 1 AM UTC
   workflow_dispatch:
 
+permissions:
+  contents: write
+  
 jobs:
   update-ipsets:
     runs-on: ubuntu-latest
