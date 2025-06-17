@@ -57,6 +57,7 @@ jobs:
           import os
           import json
           import hashlib
+          import ipaddress
           from datetime import datetime
 
           def read_file_lines(path):
@@ -65,31 +66,49 @@ jobs:
                   if line.strip() and not line.strip().startswith('#')
               ))
 
+          def merge_ip_ranges(ip_list):
+              nets = []
+              for ip in ip_list:
+                  try:
+                      # Try parsing as a network or host
+                      net = ipaddress.ip_network(ip, strict=False)
+                      nets.append(net)
+                  except ValueError:
+                      continue  # Skip invalid IPs
+              collapsed = ipaddress.collapse_addresses(nets)
+              return sorted(str(net) for net in collapsed)
+
           data = {
               "generated": datetime.utcnow().isoformat() + "Z",
               "allowlists": {
-                  "static": read_file_lines("ipsets/allowlists/static/static-allow.txt"),
+                  "static": [],
                   "dynamic": {}
               },
               "blocklists": {
-                  "static": read_file_lines("ipsets/blocklists/static/static-block.txt"),
+                  "static": [],
                   "dynamic": {}
               }
           }
 
+          # Read static lists
+          data["allowlists"]["static"] = merge_ip_ranges(read_file_lines("ipsets/allowlists/static/static-allow.txt"))
+          data["blocklists"]["static"] = merge_ip_ranges(read_file_lines("ipsets/blocklists/static/static-block.txt"))
+
+          # Read dynamic lists
           for file in os.listdir("ipsets/allowlists/dynamic"):
               path = f"ipsets/allowlists/dynamic/{file}"
-              data["allowlists"]["dynamic"][file] = read_file_lines(path)
+              data["allowlists"]["dynamic"][file] = merge_ip_ranges(read_file_lines(path))
 
           for file in os.listdir("ipsets/blocklists/dynamic"):
               path = f"ipsets/blocklists/dynamic/{file}"
-              data["blocklists"]["dynamic"][file] = read_file_lines(path)
+              data["blocklists"]["dynamic"][file] = merge_ip_ranges(read_file_lines(path))
 
+          # Write JSON
           json_path = "combined/ipsets.json"
           with open(json_path, "w", encoding="utf-8") as f:
               json.dump(data, f, indent=2)
 
-          # Calculate SHA1 and save to .sha1
+          # Write SHA1
           with open(json_path, "rb") as f:
               sha1 = hashlib.sha1(f.read()).hexdigest()
           with open(json_path + ".sha1", "w", encoding="utf-8") as f:
