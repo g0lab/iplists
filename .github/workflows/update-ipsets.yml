@@ -1,0 +1,93 @@
+name: Update Dynamic IP Sets
+
+on:
+  #schedule:
+  #  - cron: '0 1 * * *'  # Daily at 1 AM UTC
+  workflow_dispatch:
+
+jobs:
+  update-ipsets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Create required folders
+        run: |
+          mkdir -p ipsets/allowlists/dynamic
+          mkdir -p ipsets/blocklists/dynamic
+          mkdir -p combined
+
+      - name: Download dynamic allowlists
+        run: |
+          while IFS= read -r url || [[ -n "$url" ]]; do
+            [[ -z "$url" || "$url" =~ ^# ]] && continue
+            filename=$(echo "$url" | sha256sum | awk '{print $1}')
+            curl -sSL "$url" -o "ipsets/allowlists/dynamic/${filename}.txt"
+          done < sources/allowlists.txt
+
+      - name: Download dynamic blocklists
+        run: |
+          while IFS= read -r url || [[ -n "$url" ]]; do
+            [[ -z "$url" || "$url" =~ ^# ]] && continue
+            filename=$(echo "$url" | sha256sum | awk '{print $1}')
+            curl -sSL "$url" -o "ipsets/blocklists/dynamic/${filename}.txt"
+          done < sources/blocklists.txt
+
+      - name: Combine all allowlists
+        run: |
+          cat ipsets/allowlists/static/static-allow.txt > combined/allowlist.txt
+          find ipsets/allowlists/dynamic -type f -exec cat {} + >> combined/allowlist.txt
+          sort -u combined/allowlist.txt -o combined/allowlist.txt
+
+      - name: Combine all blocklists
+        run: |
+          cat ipsets/blocklists/static/static-block.txt > combined/blocklist.txt
+          find ipsets/blocklists/dynamic -type f -exec cat {} + >> combined/blocklist.txt
+          sort -u combined/blocklist.txt -o combined/blocklist.txt
+
+      - name: Generate structured JSON
+        run: |
+          python3 <<EOF
+          import os
+          import json
+          from datetime import datetime
+
+          def read_file_lines(path):
+              return sorted(set(
+                  line.strip() for line in open(path, 'r', encoding='utf-8')
+                  if line.strip()
+              ))
+
+          data = {
+              "generated": datetime.utcnow().isoformat() + "Z",
+              "allowlists": {
+                  "static": read_file_lines("ipsets/allowlists/static/static-allow.txt"),
+                  "dynamic": {}
+              },
+              "blocklists": {
+                  "static": read_file_lines("ipsets/blocklists/static/static-block.txt"),
+                  "dynamic": {}
+              }
+          }
+
+          for file in os.listdir("ipsets/allowlists/dynamic"):
+              path = f"ipsets/allowlists/dynamic/{file}"
+              data["allowlists"]["dynamic"][file] = read_file_lines(path)
+
+          for file in os.listdir("ipsets/blocklists/dynamic"):
+              path = f"ipsets/blocklists/dynamic/{file}"
+              data["blocklists"]["dynamic"][file] = read_file_lines(path)
+
+          with open("combined/ipsets.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, indent=2)
+          EOF
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add ipsets/allowlists/dynamic/*.txt ipsets/blocklists/dynamic/*.txt combined/
+          git diff --cached --quiet || git commit -m "Update IP sets on $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          git push
