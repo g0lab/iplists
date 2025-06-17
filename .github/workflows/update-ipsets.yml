@@ -58,7 +58,7 @@ jobs:
           import json
           import hashlib
           import ipaddress
-          from datetime import datetime, UTC
+          from datetime import datetime, timezone
 
           def read_file_lines(path):
               return sorted(set(
@@ -81,7 +81,7 @@ jobs:
               return sorted(str(net) for net in collapsed)
 
           data = {
-              "generated": datetime.now(datetime.UTC).isoformat(),
+              "generated": datetime.now(timezone.utc).isoformat(),
               "allowlists": {
                   "static": [],
                   "dynamic": {}
