@@ -41,14 +41,15 @@ jobs:
 
       - name: Combine all allowlists
         run: |
-          cat ipsets/allowlists/static/static-allow.txt > combined/allowlist.txt
-          find ipsets/allowlists/dynamic -type f -exec cat {} + >> combined/allowlist.txt
+          mkdir -p combined
+          grep -v '^#' ipsets/allowlists/static/static-allow.txt > combined/allowlist.txt
+          find ipsets/allowlists/dynamic -type f -exec cat {} + | grep -v '^#' >> combined/allowlist.txt
           sort -u combined/allowlist.txt -o combined/allowlist.txt
 
       - name: Combine all blocklists
         run: |
-          cat ipsets/blocklists/static/static-block.txt > combined/blocklist.txt
-          find ipsets/blocklists/dynamic -type f -exec cat {} + >> combined/blocklist.txt
+          grep -v '^#' ipsets/blocklists/static/static-block.txt > combined/blocklist.txt
+          find ipsets/blocklists/dynamic -type f -exec cat {} + | grep -v '^#' >> combined/blocklist.txt
           sort -u combined/blocklist.txt -o combined/blocklist.txt
 
       - name: Generate structured JSON
