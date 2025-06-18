@@ -42,14 +42,17 @@ jobs:
       - name: Combine all allowlists
         run: |
           mkdir -p combined
-          grep -v '^#' ipsets/allowlists/static/static-allow.txt > combined/allowlist.txt
-          find ipsets/allowlists/dynamic -type f -exec cat {} + | grep -v '^#' >> combined/allowlist.txt
+          : > combined/allowlist.txt
+          grep -v '^#' ipsets/allowlists/static/static-allow.txt >> combined/allowlist.txt || true
+          find ipsets/allowlists/dynamic -type f -exec cat {} + | grep -v '^#' >> combined/allowlist.txt || true
           sort -u combined/allowlist.txt -o combined/allowlist.txt
 
       - name: Combine all blocklists
         run: |
-          grep -v '^#' ipsets/blocklists/static/static-block.txt > combined/blocklist.txt
-          find ipsets/blocklists/dynamic -type f -exec cat {} + | grep -v '^#' >> combined/blocklist.txt
+          mkdir -p combined
+          : > combined/blocklist.txt
+          grep -v '^#' ipsets/blocklists/static/static-block.txt >> combined/blocklist.txt || true
+          find ipsets/blocklists/dynamic -type f -exec cat {} + | grep -v '^#' >> combined/blocklist.txt || true
           sort -u combined/blocklist.txt -o combined/blocklist.txt
 
       - name: Generate structured JSON
