@@ -7,7 +7,7 @@
 # An ipset made from blocklists that track attacks, during 
 # An ipset made from blocklists that track attacks, spyware, 
 # Category        : attacks
-# Entries         : 13451 subnets, 34139 unique IPs
+# Entries         : 13452 subnets, 34140 unique IPs
 # Entries         : 14752 subnets, 30515 unique IPs
 # Entries         : 4468 subnets, 612861376 unique IPs
 # Full list analysis, including geolocation map, history,
@@ -16,16 +16,15 @@
 # Maintainer      : FireHOL
 # Maintainer URL  : http://iplists.firehol.org/
 # Processed with FireHOL's iprange
-# Source File Date: Wed Jun 18 05:20:01 UTC 2025
 # Source File Date: Wed Jun 18 06:10:01 UTC 2025
+# Source File Date: Wed Jun 18 07:22:26 UTC 2025
 # Source File Date: Wed Jun 18 07:24:30 UTC 2025
-# This File Date  : Wed Jun 18 05:21:08 UTC 2025
 # This File Date  : Wed Jun 18 06:12:44 UTC 2025
 # This File Date  : Wed Jun 18 07:24:52 UTC 2025
 # Update Frequency: 1 min 
 # Version         : 232577
 # Version         : 30214
-# Version         : 55517
+# Version         : 55518
 # about the last 48 hours. (includes: blocklist_de dshield_1d 
 # available at:
 # ciarmy dshield_30d myip vxvault)
