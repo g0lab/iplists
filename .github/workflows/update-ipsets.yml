@@ -25,9 +25,8 @@ jobs:
 
       - name: Remove Existing Dynamic lists
         run: |
-          git rm -rf ipsets/allowlists/dynamic/*
-          git rm -rf ipsets/blocklists/dynamic/*
-
+          git rm -f ipsets/allowlists/dynamic/*
+          git rm -f ipsets/blocklists/dynamic/*
 
       - name: Download dynamic allowlists (deduplicated and validated)
         run: |
