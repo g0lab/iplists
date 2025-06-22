@@ -1,4 +1,4 @@
-name: Update Dynamic IP Sets
+name: Update IP Sets
 
 on:
   schedule:
@@ -37,7 +37,7 @@ jobs:
             filename=$(echo "$url" | sha256sum | awk '{print $1}')
             tmpfile=$(mktemp)
             if curl -fsSL "$url" -o "$tmpfile"; then
-              mv "$tmpfile" "ipsets/allowlists/dynamic/p1/${filename}.txt"
+              mv "$tmpfile" "ipsets/allowlists/dynamic/p1/${filename}.ipset"
             else
               echo "[warn] Failed to download: $url" >&2
               rm -f "$tmpfile"
@@ -52,7 +52,7 @@ jobs:
             filename=$(echo "$url" | sha256sum | awk '{print $1}')
             tmpfile=$(mktemp)
             if curl -fsSL "$url" -o "$tmpfile"; then
-              mv "$tmpfile" "ipsets/allowlists/dynamic/p2/${filename}.txt"
+              mv "$tmpfile" "ipsets/allowlists/dynamic/p2/${filename}.ipset"
             else
               echo "[warn] Failed to download: $url" >&2
               rm -f "$tmpfile"
@@ -67,7 +67,7 @@ jobs:
             filename=$(echo "$url" | sha256sum | awk '{print $1}')
             tmpfile=$(mktemp)
             if curl -fsSL "$url" -o "$tmpfile"; then
-              mv "$tmpfile" "ipsets/blocklists/dynamic/p1/${filename}.txt"
+              mv "$tmpfile" "ipsets/blocklists/dynamic/p1/${filename}.ipset"
             else
               echo "[warn] Failed to download: $url" >&2
               rm -f "$tmpfile"
@@ -82,7 +82,7 @@ jobs:
             filename=$(echo "$url" | sha256sum | awk '{print $1}')
             tmpfile=$(mktemp)
             if curl -fsSL "$url" -o "$tmpfile"; then
-              mv "$tmpfile" "ipsets/blocklists/dynamic/p2/${filename}.txt"
+              mv "$tmpfile" "ipsets/blocklists/dynamic/p2/${filename}.ipset"
             else
               echo "[warn] Failed to download: $url" >&2
               rm -f "$tmpfile"
@@ -92,14 +92,14 @@ jobs:
       - name: Combine all allowlists
         run: |
           cat ipsets/allowlists/static/static-allow.txt > combined/allowlist.txt
-          find ipsets/allowlists/dynamic -type f -exec cat {} + >> combined/allowlist.txt
+          find ipsets/allowlists/dynamic -type f -name '*.ipset' -exec cat {} + >> combined/allowlist.txt
           grep -v '^#' combined/allowlist.txt | sort -u > combined/allowlist.tmp
           mv combined/allowlist.tmp combined/allowlist.txt
 
       - name: Combine all blocklists
         run: |
           cat ipsets/blocklists/static/static-block.txt > combined/blocklist.txt
-          find ipsets/blocklists/dynamic -type f -exec cat {} + >> combined/blocklist.txt
+          find ipsets/blocklists/dynamic -type f -name '*.ipset' -exec cat {} + >> combined/blocklist.txt
           grep -v '^#' combined/blocklist.txt | sort -u > combined/blocklist.tmp
           mv combined/blocklist.tmp combined/blocklist.txt
 
@@ -130,6 +130,8 @@ jobs:
               result = {}
               if not os.path.isdir(path): return result
               for file in os.listdir(path):
+                  if not file.endswith(".ipset"):
+                      continue
                   full_path = os.path.join(path, file)
                   result[file] = merge_ip_ranges(read_file_lines(full_path))
               return result
