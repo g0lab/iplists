@@ -15,7 +15,9 @@
   "blocklists": {
     "static": [],
     "dynamic": {
-      "d617102c035e7d423a8772b1521404fa338d9164006f7a233cf22aa0d5b369d8.txt": []
+      "49dc3a55783bf88488262fb57c0478c69bbb7b9b84ffa2722f295d42be14792d.txt": [
+        "123.123.123.0/24"
+      ]
     }
   }
 }
