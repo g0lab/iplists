@@ -1,1 +1,1 @@
-https://github.com/g0lab/iplists/blob/main/testing/block-test-01.netset
+https://raw.githubusercontent.com/g0lab/iplists/refs/heads/main/testing/block-test-01.netset
