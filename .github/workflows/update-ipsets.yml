@@ -22,6 +22,7 @@ jobs:
           git rm -f ipsets/allowlists/dynamic/p2/* || true
           git rm -f ipsets/blocklists/dynamic/p1/* || true
           git rm -f ipsets/blocklists/dynamic/p2/* || true
+          git rm -f combined/* || true
 
       - name: Create required folders
         run: |
