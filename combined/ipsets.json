@@ -7,7 +7,7 @@
     ],
     "dynamic": {
       "p1": {
-        "3aa671533b67c70fcf192b124fcac02fa92cf7d730c8627d12f9c5e67a80e768.txt": [
+        "3aa671533b67c70fcf192b124fcac02fa92cf7d730c8627d12f9c5e67a80e768.ipset": [
           "1.1.1.0/24",
           "8.8.8.0/24"
         ]
@@ -19,7 +19,7 @@
     "static": [],
     "dynamic": {
       "p1": {
-        "49dc3a55783bf88488262fb57c0478c69bbb7b9b84ffa2722f295d42be14792d.txt": [
+        "49dc3a55783bf88488262fb57c0478c69bbb7b9b84ffa2722f295d42be14792d.ipset": [
           "123.123.123.0/24"
         ]
       },
