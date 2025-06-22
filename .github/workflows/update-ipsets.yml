@@ -25,8 +25,9 @@ jobs:
 
       - name: Remove Existing Dynamic lists
         run: |
-          rm -f ipsets/allowlists/dynamic/*
-          rm -f ipsets/blocklists/dynamic/*
+          git rm -rf ipsets/allowlists/dynamic/*
+          git rm -rf ipsets/blocklists/dynamic/*
+
 
       - name: Download dynamic allowlists (deduplicated and validated)
         run: |
@@ -134,6 +135,6 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add ipsets/allowlists/dynamic/*.txt ipsets/blocklists/dynamic/*.txt combined/
+          git add -A ipsets/allowlists/dynamic ipsets/blocklists/dynamic combined/
           git diff --cached --quiet || git commit -m "Update IP sets on $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           git push
