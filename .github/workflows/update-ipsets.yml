@@ -169,5 +169,5 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add -A ipsets/allowlists/dynamic ipsets/blocklists/dynamic combined/
-          git diff --cached --quiet || git commit -m "Update IP sets on $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          git diff --cached --quiet || git commit -m "Update IP sets on $(date -u + '%d-%m-%Y %H:%M:%S UTC')"
           git push
