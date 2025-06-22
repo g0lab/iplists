@@ -17,17 +17,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create required folders
-        run: |
-          mkdir -p ipsets/allowlists/dynamic
-          mkdir -p ipsets/blocklists/dynamic
-          mkdir -p combined
-
       - name: Remove Existing Dynamic lists
         run: |
           git rm -f ipsets/allowlists/dynamic/*
           git rm -f ipsets/blocklists/dynamic/*
 
+      - name: Create required folders
+        run: |
+          mkdir -p ipsets/allowlists/dynamic
+          mkdir -p ipsets/blocklists/dynamic
+          mkdir -p combined
+          
       - name: Download dynamic allowlists (deduplicated and validated)
         run: |
           grep -v '^#' sources/allowlists.txt | sort -u | while IFS= read -r url; do
