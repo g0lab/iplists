@@ -1,0 +1,1 @@
+https://raw.githubusercontent.com/g0lab/iplists/refs/heads/main/testing/block-test-02.netset
