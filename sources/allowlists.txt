@@ -1,1 +1,1 @@
-https://iplists.firehol.org/files/ip2location_country/ip2location_country_au.netset
+https://raw.githubusercontent.com/g0lab/iplists/refs/heads/main/testing/allow-test-01.netset
