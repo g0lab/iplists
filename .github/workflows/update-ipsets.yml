@@ -2,8 +2,8 @@ name: Update Dynamic IP Sets
 
 on:
   schedule:
-    #- cron: '0 1 * * *'  # Daily at 1 AM UTC
-    - cron: '0 * * * *'  # Every hour at minute 0 (e.g., 01:00, 02:00, etc.)
+    # - cron: '0 1 * * *'  # Daily at 1 AM UTC
+    - cron: '0 * * * *'    # Every hour at minute 0
   workflow_dispatch:
 
 permissions:
@@ -23,37 +23,52 @@ jobs:
           mkdir -p ipsets/blocklists/dynamic
           mkdir -p combined
 
-      - name: Download dynamic allowlists
+      - name: Remove Existing Dynamic lists
         run: |
-          while IFS= read -r url || [[ -n "$url" ]]; do
-            [[ -z "$url" || "$url" =~ ^# ]] && continue
-            filename=$(echo "$url" | sha256sum | awk '{print $1}')
-            curl -sSL "$url" -o "ipsets/allowlists/dynamic/${filename}.txt"
-          done < sources/allowlists.txt
+          rm -f ipsets/allowlists/dynamic/*
+          rm -f ipsets/blocklists/dynamic/*
 
-      - name: Download dynamic blocklists
+      - name: Download dynamic allowlists (deduplicated and validated)
         run: |
-          while IFS= read -r url || [[ -n "$url" ]]; do
-            [[ -z "$url" || "$url" =~ ^# ]] && continue
+          grep -v '^#' sources/allowlists.txt | sort -u | while IFS= read -r url; do
+            [[ -z "$url" ]] && continue
             filename=$(echo "$url" | sha256sum | awk '{print $1}')
-            curl -sSL "$url" -o "ipsets/blocklists/dynamic/${filename}.txt"
-          done < sources/blocklists.txt
+            tmpfile=$(mktemp)
+            if curl -fsSL "$url" -o "$tmpfile"; then
+              mv "$tmpfile" "ipsets/allowlists/dynamic/${filename}.txt"
+            else
+              echo "[warn] Failed to download: $url" >&2
+              rm -f "$tmpfile"
+            fi
+          done
+
+      - name: Download dynamic blocklists (deduplicated and validated)
+        run: |
+          grep -v '^#' sources/blocklists.txt | sort -u | while IFS= read -r url; do
+            [[ -z "$url" ]] && continue
+            filename=$(echo "$url" | sha256sum | awk '{print $1}')
+            tmpfile=$(mktemp)
+            if curl -fsSL "$url" -o "$tmpfile"; then
+              mv "$tmpfile" "ipsets/blocklists/dynamic/${filename}.txt"
+            else
+              echo "[warn] Failed to download: $url" >&2
+              rm -f "$tmpfile"
+            fi
+          done
 
       - name: Combine all allowlists
         run: |
-          mkdir -p combined
-          : > combined/allowlist.txt
-          grep -v '^#' ipsets/allowlists/static/static-allow.txt >> combined/allowlist.txt || true
-          find ipsets/allowlists/dynamic -type f -exec cat {} + | grep -v '^#' >> combined/allowlist.txt || true
-          sort -u combined/allowlist.txt -o combined/allowlist.txt
+          cat ipsets/allowlists/static/static-allow.txt > combined/allowlist.txt
+          find ipsets/allowlists/dynamic -type f -exec cat {} + >> combined/allowlist.txt
+          grep -v '^#' combined/allowlist.txt | sort -u > combined/allowlist.tmp
+          mv combined/allowlist.tmp combined/allowlist.txt
 
       - name: Combine all blocklists
         run: |
-          mkdir -p combined
-          : > combined/blocklist.txt
-          grep -v '^#' ipsets/blocklists/static/static-block.txt >> combined/blocklist.txt || true
-          find ipsets/blocklists/dynamic -type f -exec cat {} + | grep -v '^#' >> combined/blocklist.txt || true
-          sort -u combined/blocklist.txt -o combined/blocklist.txt
+          cat ipsets/blocklists/static/static-block.txt > combined/blocklist.txt
+          find ipsets/blocklists/dynamic -type f -exec cat {} + >> combined/blocklist.txt
+          grep -v '^#' combined/blocklist.txt | sort -u > combined/blocklist.tmp
+          mv combined/blocklist.tmp combined/blocklist.txt
 
       - name: Generate structured JSON
         run: |
@@ -62,7 +77,6 @@ jobs:
           import json
           import hashlib
           import ipaddress
-          #from datetime import datetime, timezone
 
           def read_file_lines(path):
               return sorted(set(
@@ -95,11 +109,9 @@ jobs:
               }
           }
 
-          # Read static lists
           data["allowlists"]["static"] = merge_ip_ranges(read_file_lines("ipsets/allowlists/static/static-allow.txt"))
           data["blocklists"]["static"] = merge_ip_ranges(read_file_lines("ipsets/blocklists/static/static-block.txt"))
 
-          # Read dynamic lists
           for file in os.listdir("ipsets/allowlists/dynamic"):
               path = f"ipsets/allowlists/dynamic/{file}"
               data["allowlists"]["dynamic"][file] = merge_ip_ranges(read_file_lines(path))
@@ -108,16 +120,14 @@ jobs:
               path = f"ipsets/blocklists/dynamic/{file}"
               data["blocklists"]["dynamic"][file] = merge_ip_ranges(read_file_lines(path))
 
-          # Write JSON
           json_path = "combined/ipsets.json"
           with open(json_path, "w", encoding="utf-8") as f:
               json.dump(data, f, indent=2)
 
-          # Write SHA1
           with open(json_path, "rb") as f:
               sha1 = hashlib.sha1(f.read()).hexdigest()
           with open(json_path + ".sha1", "w", encoding="utf-8") as f:
-              f.write(sha1 + "\n")
+              f.write(sha1 + "\\n")
           EOF
 
       - name: Commit and push changes
