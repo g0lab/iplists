@@ -18,10 +18,10 @@ jobs:
 
       - name: Remove Existing Dynamic lists
         run: |
-          git rm -f ipsets/allowlists/dynamic/p1/*
-          git rm -f ipsets/allowlists/dynamic/p2/*
-          git rm -f ipsets/blocklists/dynamic/p1/*
-          git rm -f ipsets/blocklists/dynamic/p2/*
+          git rm -f ipsets/allowlists/dynamic/p1/* || true
+          git rm -f ipsets/allowlists/dynamic/p2/* || true
+          git rm -f ipsets/blocklists/dynamic/p1/* || true
+          git rm -f ipsets/blocklists/dynamic/p2/* || true
 
       - name: Create required folders
         run: |
