@@ -20,9 +20,9 @@ jobs:
         run: |
           git rm -f ipsets/allowlists/dynamic/p1/*
           git rm -f ipsets/allowlists/dynamic/p2/*
-          git rm -f ipsets/allowlists/dynamic/p1/*
-          git rm -f ipsets/allowlists/dynamic/p2/*
-          
+          git rm -f ipsets/blocklists/dynamic/p1/*
+          git rm -f ipsets/blocklists/dynamic/p2/*
+
       - name: Create required folders
         run: |
           mkdir -p ipsets/allowlists/dynamic/p1
